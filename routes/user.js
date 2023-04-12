@@ -57,7 +57,7 @@ router.post("/register", async (req, res) => {
 });
 
 //Route to verify jwt
-router.get("/", async (req, res) => {
+router.get("/verify", async (req, res) => {
 	const headers = req.headers.cookie;
 	const token = getCookie({ name: "jwt", headers: headers });
 	if (token === undefined || token === null || token === "") {
@@ -75,6 +75,16 @@ router.get("/:placement", isLoggedIn, async (req, res) => {
 		"fullname username email placement totalHours"
 	);
 	res.json(users);
+});
+
+//Route to get user data
+router.get("/", isLoggedIn, async (req, res) => {
+	const matricNumber = req.user.username;
+
+	const user = await User.findOne({ username: matricNumber }).select(
+		"fullname username email placement course level totalHours"
+	);
+	res.json(user);
 });
 
 router.delete("/:username", async (req, res) => {
