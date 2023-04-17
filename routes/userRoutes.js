@@ -31,12 +31,12 @@ router.post("/register", async (req, res) => {
 
 //Route to verify jwt
 router.get("/verify", async (req, res) => {
-	const headers = req.headers.cookie;
-	const token = await verifyToken(headers);
+	const cookie = req.headers.cookie;
+	const token = await verifyToken(cookie);
 	res.send(token);
 });
 
-//Route to verify jwt
+//Route to get single user
 router.get("/me", isLoggedIn, async (req, res) => {
 	const { username } = req.user;
 	let message = await getUser(username);

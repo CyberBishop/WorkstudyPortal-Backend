@@ -81,11 +81,9 @@ router.get("/", isLoggedIn, async (req, res) => {
 
 	// If the user is a student, get the student's attendance records
 	if (role === "student") {
-		console.log("student");
 		const { username } = req.user;
-		console.log(username);
 		const attendance = await Attendance.find({
-			matricNumber: username.toLowerCase(),
+			matricNumber: username,
 		});
 		res.send(attendance);
 	} else {
