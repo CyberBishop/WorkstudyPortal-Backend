@@ -74,7 +74,9 @@ let userLogin = async (username, password) => {
 					},
 					JWT_SECRET
 				);
-				return { token };
+
+				let role = user.role;
+				return { token, role };
 			} else {
 				return { error: "Invalid Username/Password" };
 			}

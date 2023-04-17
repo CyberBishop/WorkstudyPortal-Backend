@@ -16,7 +16,7 @@ const bcrypt = require("bcryptjs");
 //Login Route, verify user and get user token
 router.post("/login", async (req, res) => {
 	const login = await userLogin(req.body.username, req.body.password);
-	res.send(login);
+	res.json({ login });
 });
 
 //Signup Route
