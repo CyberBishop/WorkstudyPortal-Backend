@@ -42,6 +42,7 @@ const userSchema = new mongoose.Schema({
 	placement: {
 		type: String,
 		required: false,
+		lowercase: true,
 	},
 	course: {
 		type: String,

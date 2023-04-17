@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const attendanceRoutes = require("./routes/attendacnce");
-const userRoutes = require("./routes/user");
+const attendanceRoutes = require("./routes/attendacnceRoutes");
+const userRoutes = require("./routes/userRoutes");
 const cors = require("cors");
 
 require("dotenv").config();
@@ -11,11 +11,11 @@ const app = express();
 app.use(express.json());
 app.use(
 	cors({
-		origin: ["http://localhost:5500", "http://127.0.0.1:5500"],
+		origin: process.env.CORS_ORIGIN,
 	})
 );
-app.use("/attendance", attendanceRoutes);
-app.use("/user", userRoutes);
+app.use("/attendances", attendanceRoutes);
+app.use("/users", userRoutes);
 
 const PORT = process.env.PORT || 3000;
 
@@ -31,7 +31,7 @@ const connectDB = async () => {
 
 //Routes go here
 app.all("*", (req, res) => {
-	res.json({ "every thing": "is awesome" });
+	res.json({ status: "server is running" });
 });
 
 //Connect to the database before listening

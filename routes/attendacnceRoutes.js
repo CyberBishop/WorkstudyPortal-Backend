@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const Attendance = require("../models/attendance");
-const User = require("../models/user");
-const { isLoggedIn } = require("../controllers/middleware"); // import isLoggedIn custom middleware
+const Attendance = require("../models/attendanceModels");
+const User = require("../models/userModels");
+const { isLoggedIn } = require("../middlewares/auth"); // import isLoggedIn custom middleware
 
 router.use(express.json());
 
@@ -21,7 +21,7 @@ router.post("/", async (req, res) => {
 		signOutTime: { $eq: null },
 	});
 	if (existingAttendance) {
-		return res.status(400).json({ error: "Student has not signed out yet" });
+		return res.status(200).json({ error: "You are already signed in" });
 	}
 
 	// Create a new attendance record for the student
@@ -46,7 +46,7 @@ router.put("/", async (req, res) => {
 
 		if (!lastAttendance || lastAttendance.signOutTime) {
 			return res
-				.status(400)
+				.status(200)
 				.send({ message: "User not found or already signed out" });
 		}
 
@@ -81,7 +81,9 @@ router.get("/", isLoggedIn, async (req, res) => {
 
 	// If the user is a student, get the student's attendance records
 	if (role === "student") {
+		console.log("student");
 		const { username } = req.user;
+		console.log(username);
 		const attendance = await Attendance.find({
 			matricNumber: username.toLowerCase(),
 		});
