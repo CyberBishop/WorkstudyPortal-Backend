@@ -1,3 +1,3 @@
 # workstudy-backend
 
-[Workstudy Rest API in Nodejs]
+Workstudy Rest API in Nodejs

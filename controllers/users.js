@@ -47,7 +47,7 @@ let createUser = async (userData) => {
 	try {
 		const { email } = userData;
 		const checkEmail = await User.find({ email }).select("email");
-		if (checkEmail) {
+		if (checkEmail.length > 0) {
 			return { error: "email / matric_number exists" };
 		}
 		const user = await User.create(userData);
