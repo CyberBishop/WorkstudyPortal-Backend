@@ -9,7 +9,15 @@ require("dotenv").config();
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+const corsOptions = {
+	origin: "*",
+	exposedHeaders: "Authorization",
+	optionsSuccessStatus: 200,
+	allowedHeaders: "Authorization",
+};
+
+app.use(cors(corsOptions));
+
 app.use("/attendances", attendanceRoutes);
 app.use("/users", userRoutes);
 
