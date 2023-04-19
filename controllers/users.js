@@ -36,7 +36,6 @@ let getUsersByPlacement = async (placement) => {
 		const users = await User.find({ placement: placement }).select(
 			"fullname username email placement totalHours"
 		);
-		console.log(users);
 		return users;
 	} catch (error) {
 		return { error: "An error occured" };

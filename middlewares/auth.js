@@ -7,7 +7,10 @@ const isLoggedIn = async (req, res, next) => {
 	try {
 		const cookie = req.headers.cookie;
 		const token = await verifyToken(cookie);
-		return next();
+		if (token) {
+			req.user = token;
+		}
+		next();
 	} catch (error) {
 		console.log(error);
 		res.status(400).json({ error: "An error occured" });

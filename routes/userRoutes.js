@@ -36,23 +36,26 @@ router.get("/verify", async (req, res) => {
 	res.send(token);
 });
 
+//Route to get users data
+router.get("/", isLoggedIn, async (req, res) => {
+	let users;
+	if (!req.user.error) {
+		const { uuid, username, email, role } = req.user;
+		if (role === "admin") {
+			users = await getUser(uuid);
+		} else if (role === "student") {
+			users = await getUser(uuid);
+		}
+		res.send(users);
+	} else {
+		res.json({ error: "An error occured" });
+	}
+});
+
 //Route to get list of users based on placement query param
 router.get("/:placement", isLoggedIn, async (req, res) => {
 	let placement = req.params.placement;
 	const users = await getUsersByPlacement(placement);
-	res.send(users);
-});
-
-//Route to get users data
-router.get("/", isLoggedIn, async (req, res) => {
-	let user;
-	const token = await verifyToken(req.headers.cookie);
-	let userID = token.uuid;
-	if (token.role === "admin") {
-		users = await getUser(userID);
-	} else if (token.role === "student") {
-		users = await getUser(userID);
-	}
 	res.send(users);
 });
 

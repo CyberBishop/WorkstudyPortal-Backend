@@ -9,19 +9,12 @@ require("dotenv").config();
 const app = express();
 
 app.use(express.json());
-// app.use(
-// 	cors({
-// 		origin: "*",
-// 		credentials: true,
-// 	})
-// );
-
-app.use(function (req, res, next) {
-	res.header("Access-Control-Allow-Origin", "https://workstudy.cu.edu.ng");
-	res.header("Access-Control-Allow-Credentials", true);
-	next();
-});
-
+app.use(
+	cors({
+		credentials: true,
+		origin: [process.env.CORS_ORIGIN_1, process.env.CORS_ORIGIN_2],
+	})
+);
 app.use("/attendances", attendanceRoutes);
 app.use("/users", userRoutes);
 
