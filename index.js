@@ -9,14 +9,15 @@ require("dotenv").config();
 const app = express();
 
 app.use(express.json());
-const corsOptions = {
-	origin: "*",
-	exposedHeaders: "Authorization",
-	optionsSuccessStatus: 200,
-	allowedHeaders: "Authorization",
-};
-
-app.use(cors(corsOptions));
+app.use(function (req, res, next) {
+	res.header("Access-Control-Allow-Origin", "https://workstudy.cu.edu.ng");
+	res.header("Access-Control-Allow-Credentials", true);
+	res.header(
+		"Access-Control-Allow-Headers",
+		"Origin, X-Requested-With, Content-Type, Accept, Authorization"
+	);
+	next();
+});
 
 app.use("/attendances", attendanceRoutes);
 app.use("/users", userRoutes);
