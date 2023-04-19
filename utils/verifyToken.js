@@ -2,9 +2,7 @@ const getCookie = require("./getCookie");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = process.env;
 
-let verifyToken = async (cookie) => {
-	const token = getCookie({ name: "token", headers: cookie });
-
+let verifyToken = async (token) => {
 	if (token === undefined || token === null || token === "") {
 		return { error: "Unauthorized" };
 	}

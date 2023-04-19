@@ -31,14 +31,13 @@ router.post("/register", async (req, res) => {
 
 //Route to verify jwt
 router.get("/verify", async (req, res) => {
-	const cookie = req.headers.cookie;
+	const cookie = req.headers.authorization.split(" ")[1];
 	const token = await verifyToken(cookie);
 	res.send(token);
 });
 
 //Route to get users data
 router.get("/", isLoggedIn, async (req, res) => {
-	let users;
 	if (!req.user.error) {
 		const { uuid, username, email, role } = req.user;
 		if (role === "admin") {

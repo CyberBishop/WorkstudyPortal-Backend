@@ -10,11 +10,11 @@ const app = express();
 
 app.use(express.json());
 const corsOptions = {
-	origin: "https://workstudy.cu.edu.ng",
+	origin: [process.env.CORS_ORIGIN_1, process.env.CORS_ORIGIN_2],
 	credentials: true,
 	exposedHeaders: "Authorization",
 	optionsSuccessStatus: 200,
-	allowedHeaders: "Authorization",
+	allowedHeaders: "Content-Type,Authorization",
 };
 
 app.use(cors(corsOptions));
