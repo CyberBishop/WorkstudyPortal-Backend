@@ -3,6 +3,7 @@ const router = express.Router();
 const Attendance = require("../models/attendanceModels");
 const User = require("../models/userModels");
 const { isLoggedIn } = require("../middlewares/auth"); // import isLoggedIn custom middleware
+const verifyToken = require("../utils/verifyToken");
 
 router.use(express.json());
 
@@ -77,11 +78,12 @@ router.put("/", async (req, res) => {
 // Get a list of all attendance records as an admin and get a list of attendance records for a student
 router.get("/", isLoggedIn, async (req, res) => {
 	// Get the user's role from jwt
-	const { role } = req.user;
+	const token = await verifyToken(req.headers.cookie);
+	let role = token.role;
+	let username = token.username;
 
 	// If the user is a student, get the student's attendance records
 	if (role === "student") {
-		const { username } = req.user;
 		const attendance = await Attendance.find({
 			matricNumber: username,
 		});

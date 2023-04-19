@@ -36,15 +36,6 @@ router.get("/verify", async (req, res) => {
 	res.send(token);
 });
 
-//Route to get single user
-router.get("/me", isLoggedIn, async (req, res) => {
-	const { username } = req.user;
-	console.log(username);
-	let message = await getUser(username);
-	console.log(message);
-	res.send(message);
-});
-
 //Route to get list of users based on placement query param
 router.get("/:placement", isLoggedIn, async (req, res) => {
 	let placement = req.params.placement;
@@ -54,9 +45,8 @@ router.get("/:placement", isLoggedIn, async (req, res) => {
 
 //Route to get users data
 router.get("/", isLoggedIn, async (req, res) => {
-	const cookie = req.headers.cookie;
-	const token = await verifyToken(cookie);
 	let user;
+	const token = await verifyToken(req.headers.cookie);
 	let userID = token.uuid;
 	if (token.role === "admin") {
 		users = await getUser(userID);
