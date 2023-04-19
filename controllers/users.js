@@ -17,10 +17,10 @@ let deleteUser = async (username) => {
 	}
 };
 
-let getUser = async (username) => {
+let getUser = async (uuid) => {
 	let user;
-	if (username) {
-		user = await User.find({ username: username }).select(
+	if (uuid) {
+		user = await User.find({ uuid: uuid }).select(
 			"fullname username email placement course level totalHours"
 		);
 	} else {
