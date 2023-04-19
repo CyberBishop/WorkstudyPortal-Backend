@@ -9,12 +9,7 @@ require("dotenv").config();
 const app = express();
 
 app.use(express.json());
-app.use(
-	cors({
-		credentials: true,
-		origin: [process.env.CORS_ORIGIN_1, process.env.CORS_ORIGIN_2],
-	})
-);
+app.use(cors());
 app.use("/attendances", attendanceRoutes);
 app.use("/users", userRoutes);
 
