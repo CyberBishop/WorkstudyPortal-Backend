@@ -1,9 +1,9 @@
-const getCookie = require("./getCookie");
+require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = process.env;
 
-let verifyToken = async (token) => {
-	if (token === undefined || token === null || token === "") {
+const verifyToken = async (token) => {
+	if (!token) {
 		return { error: "Unauthorized" };
 	}
 

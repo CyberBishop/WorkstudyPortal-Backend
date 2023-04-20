@@ -7,10 +7,10 @@ require("dotenv").config();
 
 const app = express();
 
-// Parse incoming request body as JSON
+// Middleware to parse incoming request body as JSON
 app.use(express.json());
 
-// Set up CORS options
+// Configure CORS options
 const corsOptions = {
 	origin: [process.env.CORS_ORIGIN_1, process.env.CORS_ORIGIN_2],
 	credentials: true,
@@ -22,7 +22,7 @@ const corsOptions = {
 // Enable CORS for all routes
 app.use(cors(corsOptions));
 
-// Set up routes for attendance and user management
+// Mount routes for attendance and user management
 app.use("/attendances", attendanceRoutes);
 app.use("/users", userRoutes);
 
@@ -37,14 +37,14 @@ const connectDB = async () => {
 	}
 };
 
-// Set up default route to return status message
+// Default route to return status message
 app.all("*", (req, res) => {
 	res.json({ status: "server is running" });
 });
 
 // Start server listening after database connection is established
 connectDB().then(() => {
-	const PORT = process.env.PORT || 3000;
+	const PORT = process.env.PORT;
 	app.listen(PORT, () => {
 		console.log(`Server listening on port ${PORT}`);
 	});

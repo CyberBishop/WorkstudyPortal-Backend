@@ -2,6 +2,8 @@ require("dotenv").config();
 const express = require("express");
 const router = express.Router();
 const uuid = require("uuid");
+const bcrypt = require("bcryptjs");
+const { JWT_SECRET } = process.env;
 const verifyToken = require("../utils/verifyToken");
 const { isLoggedIn } = require("../middlewares/auth"); // import isLoggedIn custom middleware
 const {
@@ -10,17 +12,31 @@ const {
 	getUsersByPlacement,
 	createUser,
 	userLogin,
-} = require("../controllers/users");
-const bcrypt = require("bcryptjs");
+	updateUserPassword,
+} = require("../controllers/userController");
 
-//Login Route, verify user and get user token
 router.post("/login", async (req, res) => {
-	const login = await userLogin(req.body.username, req.body.password);
+	const { username, password } = req.body;
+	const login = await userLogin(username, password);
 	res.json({ login });
 });
 
-//Signup Route
 router.post("/register", async (req, res) => {
+	const { username, password, email, fullname, placement, course, level } =
+		req.body;
+
+	if (
+		!username ||
+		!password ||
+		!email ||
+		!fullname ||
+		!placement ||
+		!course ||
+		!level
+	) {
+		return res.status(400).json({ error: "Please fill in all fields" });
+	}
+
 	req.body.password = await bcrypt.hash(req.body.password, 10);
 	const uniqueRandomID = uuid.v4();
 	req.body.uuid = uniqueRandomID;
@@ -29,38 +45,38 @@ router.post("/register", async (req, res) => {
 	res.send(user);
 });
 
-//Route to verify jwt
 router.get("/verify", async (req, res) => {
 	const cookie = req.headers.authorization.split(" ")[1];
 	const token = await verifyToken(cookie);
 	res.send(token);
 });
 
-//Route to get users data
 router.get("/", isLoggedIn, async (req, res) => {
-	if (!req.user.error) {
-		const { uuid, username, email, role } = req.user;
-		if (role === "admin") {
-			users = await getUser(uuid);
-		} else if (role === "student") {
-			users = await getUser(uuid);
-		}
-		res.send(users);
-	} else {
-		res.json({ error: "An error occured" });
+	const { uuid, role } = req.user;
+	let users;
+	if (role === "admin" || role === "student") {
+		users = await getUser(uuid);
 	}
+	res.send(users);
 });
 
-//Route to get list of users based on placement query param
 router.get("/:placement", isLoggedIn, async (req, res) => {
-	let placement = req.params.placement;
+	const { placement } = req.params;
 	const users = await getUsersByPlacement(placement);
 	res.send(users);
 });
 
+router.post("/reset-password", isLoggedIn, async (req, res) => {
+	const { uuid } = req.user;
+	const { password } = req.body;
+	const hashedPassword = await bcrypt.hash(password, 10);
+	const result = await updateUserPassword(uuid, hashedPassword);
+	res.send(result);
+});
+
 router.delete("/:username", async (req, res) => {
 	const { username } = req.params;
-	let message = deleteUser(username);
+	const message = await deleteUser(username);
 	res.send(message);
 });
 

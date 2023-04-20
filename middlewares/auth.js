@@ -1,34 +1,32 @@
-require("dotenv").config(); // loading env variables
+// Require necessary modules
+require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
-// MIDDLEWARE FOR AUTHORIZATION (MAKING SURE THEY ARE LOGGED IN)
+// Middleware for authorization (checks if user is logged in)
 const isLoggedIn = async (req, res, next) => {
 	try {
-		// check if auth header exists
-		if (req.headers.authorization) {
-			// parse token from header
-			const token = req.headers.authorization.split(" ")[1]; //split the header and get the token
-			if (token) {
-				const payload = await jwt.verify(token, process.env.JWT_SECRET);
-				if (payload) {
-					// store user data in request object
-					req.user = payload;
-					next();
-				} else {
-					res.status(400).json({ error: "token verification failed" });
-				}
-			} else {
-				res.status(400).json({ error: "malformed auth header" });
-			}
-		} else {
-			res.status(400).json({ error: "No authorization header" });
+		// Check if authorization header exists
+		if (!req.headers.authorization) {
+			return res.status(400).json({ error: "No authorization header" });
 		}
+
+		// Parse token from header
+		const token = req.headers.authorization.split(" ")[1];
+		if (!token) {
+			return res.status(400).json({ error: "Malformed auth header" });
+		}
+
+		// Verify token and store user data in request object
+		const payload = await jwt.verify(token, process.env.JWT_SECRET);
+		if (!payload) {
+			return res.status(400).json({ error: "Token verification failed" });
+		}
+		req.user = payload;
+		next();
 	} catch (error) {
 		res.status(400).json({ error });
 	}
 };
 
-// export custom middleware
-module.exports = {
-	isLoggedIn,
-};
+// Export the middleware function
+module.exports = { isLoggedIn };
