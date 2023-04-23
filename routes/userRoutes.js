@@ -54,7 +54,9 @@ router.get("/verify", async (req, res) => {
 router.get("/", isLoggedIn, async (req, res) => {
 	const { uuid, role } = req.user;
 	let users;
-	if (role === "admin" || role === "student") {
+	if (role === "admin") {
+		users = await getUser();
+	} else if (role === "student") {
 		users = await getUser(uuid);
 	}
 	res.send(users);
