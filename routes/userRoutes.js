@@ -21,6 +21,11 @@ router.post("/login", async (req, res) => {
 	res.json({ login });
 });
 
+// route to update user data
+router.post("/", async (req, res) => {
+	console.log("coming soon");
+});
+
 router.post("/register", async (req, res) => {
 	const { username, password, email, fullname, placement, course, level } =
 		req.body;
