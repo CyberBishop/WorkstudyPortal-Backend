@@ -4,7 +4,6 @@ const attendanceRoutes = require('./routes/attendacnceRoutes');
 const userRoutes = require('./routes/userRoutes');
 const cors = require('cors');
 require('dotenv').config();
-
 const app = express();
 
 // Middleware to parse incoming request body as JSON
