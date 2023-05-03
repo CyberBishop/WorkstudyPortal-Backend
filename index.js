@@ -22,8 +22,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Mount routes for attendance and user management
-app.use('/attendances', attendanceRoutes);
-app.use('/users', userRoutes);
+app.use('/api/v1', attendanceRoutes);
+app.use('/api/v1', userRoutes);
 
 // Connect to MongoDB database
 const connectDB = async () => {
