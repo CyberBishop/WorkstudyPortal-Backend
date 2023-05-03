@@ -94,8 +94,20 @@ const updateUserPassword = async (uuid, password) => {
     }
 };
 
-const updateUser = async () => {
-    return { message: 'coming soon' };
+const updateUser = async (username, data) => {
+    try {
+        const user = await User.findOne({ username });
+        // update user details
+        if (data.fullname) user.fullname = data.fullname;
+        if (data.email) user.email = data.email;
+        if (data.placement) user.placement = data.placement;
+        if (data.course) user.course = data.course;
+        if (data.level) user.level = data.level;
+        await user.save();
+        return { message: 'User updated successfully' };
+    } catch (error) {
+        return { error: 'An error occurred' };
+    }
 };
 
 module.exports = {
