@@ -1,10 +1,12 @@
-const User = require('../models/userModels');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { JWT_SECRET } = process.env;
+
+const User = require('../models/userModels');
 const verifyToken = require('../utils/verifyToken');
 
-const handleServerError = (error) => {
+const { JWT_SECRET } = process.env;
+
+const handleServerError = (error, res) => {
     console.error(error);
     return res.json({ error: 'An error occurred' });
 };
@@ -15,11 +17,11 @@ exports.deleteUserByUsername = async (req, res) => {
     try {
         const user = await User.findOneAndDelete({ username });
         if (!user) {
-            return { message: 'User not found' };
+            return res.json({ message: 'User not found' });
         }
         return res.json({ message: 'User deleted successfully' });
     } catch (error) {
-        return handleServerError(error);
+        return handleServerError(error, res);
     }
 };
 
@@ -31,36 +33,39 @@ exports.verifyUserToken = async (req, res) => {
 
 exports.getUser = async (req, res) => {
     const { uuid, role } = req.user;
+
     try {
         const selectFields =
             'fullname username email placement course level totalHours';
         const user = await User.find({ uuid }).select(selectFields);
         return res.json(user);
     } catch (error) {
-        return handleServerError(error);
+        return handleServerError(error, res);
     }
 };
 
 exports.getUsers = async (req, res) => {
     const { uuid, role } = req.user;
+
     try {
         const selectFields =
             'fullname username email placement course level totalHours';
         const users = await User.find({}).select(selectFields);
         return res.json(users);
     } catch (error) {
-        return handleServerError(error);
+        return handleServerError(error, res);
     }
 };
 
 exports.getUsersByPlacement = async (req, res) => {
     const { placement } = req.params;
+
     try {
         const selectFields = 'fullname username email placement totalHours';
         const users = await User.find({ placement }).select(selectFields);
         return res.json(users);
     } catch (error) {
-        return handleServerError(error);
+        return handleServerError(error, res);
     }
 };
 
@@ -86,7 +91,7 @@ exports.createUser = async (req, res) => {
             return res.json({ error: 'Email already exists' });
         }
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await User.create({
+        await User.create({
             username,
             password: hashedPassword,
             email,
@@ -97,7 +102,7 @@ exports.createUser = async (req, res) => {
         });
         return res.json({ message: 'User created' });
     } catch (error) {
-        return handleServerError(error);
+        return handleServerError(error, res);
     }
 };
 
@@ -118,7 +123,7 @@ exports.userLogin = async (req, res) => {
         }
         return res.json({ error: 'Invalid Username/Password' });
     } catch (error) {
-        return handleServerError(error);
+        return handleServerError(error, res);
     }
 };
 
@@ -141,7 +146,7 @@ exports.updateUserPassword = async (req, res) => {
         }
         return res.json({ message: 'Password updated successfully' });
     } catch (error) {
-        return handleServerError(error);
+        return handleServerError(error, res);
     }
 };
 
@@ -164,6 +169,6 @@ exports.updateUser = async (req, res) => {
         }
         return res.json({ message: 'User updated successfully' });
     } catch (error) {
-        return handleServerError(error);
+        return handleServerError(error, res);
     }
 };

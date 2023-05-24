@@ -1,8 +1,7 @@
-// Require necessary modules
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
-const checkHeaders = async (req, res) => {
+const checkHeaders = (req, res, next) => {
     try {
         // Check if authorization header exists
         if (!req.headers.authorization) {
@@ -16,35 +15,32 @@ const checkHeaders = async (req, res) => {
         }
 
         // Verify token and store user data in request object
-        const payload = await jwt.verify(token, process.env.JWT_SECRET);
+        const payload = jwt.verify(token, process.env.JWT_SECRET);
         if (!payload) {
             return res.status(400).json({ error: 'Token verification failed' });
         }
 
         req.user = payload; // Store user data in the request object
+        next();
     } catch (error) {
-        console.log('An error occurred');
+        console.error('An error occurred:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
 // Middleware for authorization (checks if user is logged in)
-const isLoggedIn = async (req, res, next) => {
-    await checkHeaders(req, res);
-    next();
+const isLoggedIn = (req, res, next) => {
+    checkHeaders(req, res, next);
 };
 
 // Middleware for authorization (checks if user is an admin)
-const isAdmin = async (req, res, next) => {
-    try {
-        await checkHeaders(req, res);
+const isAdmin = (req, res, next) => {
+    checkHeaders(req, res, () => {
         if (req.user.role !== 'admin') {
             return res.status(403).json({ error: 'Unauthorized' });
         }
         next();
-    } catch (error) {
-        console.log(error);
-        res.status(400).json({ error });
-    }
+    });
 };
 
 // Export the middleware functions
