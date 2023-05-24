@@ -1,9 +1,13 @@
-const Attendance = require('../models/attendanceModels');
+//models
 const User = require('../models/userModels');
+const Attendance = require('../models/attendanceModels');
+
 const moment = require('moment');
+
+//utils
 const verifyToken = require('../utils/verifyToken');
 
-const createAttendance = async (req, res) => {
+exports.createAttendance = async (req, res) => {
     const { matricNumber } = req.body;
     const signInTime = new Date();
 
@@ -28,8 +32,14 @@ const createAttendance = async (req, res) => {
     res.send(attendance);
 };
 
-const updateAttendance = async (req, res) => {
+exports.updateAttendance = async (req, res) => {
     const { matricNumber } = req.body;
+    const { username } = req.user;
+
+    if (matricNumber !== username) {
+        return res.status(401).send({ error: 'Unauthorized' });
+    }
+
     const signOutTime = new Date();
 
     try {
@@ -67,44 +77,18 @@ const updateAttendance = async (req, res) => {
     }
 };
 
-const getAttendance = async (req, res) => {
-    // Get the user's role from jwt
-    const token = await verifyToken(req.headers.cookie);
-    let role = token.role;
-    let username = token.username;
+exports.getAttendance = async (req, res) => {
+    const { username, role } = req.user;
 
     // If the user is a student, get the student's attendance records
     if (role === 'student') {
         const attendance = await Attendance.find({
             matricNumber: username,
         });
-        res.send(attendance);
+        return res.send(attendance);
     } else {
         // If the user is an admin, get all attendance records
         const attendance = await Attendance.find();
-        res.send(attendance);
+        return res.send(attendance);
     }
-};
-
-const getAttendances = async (req, res) => {
-    // Get the user's role from jwt
-    const token = await verifyToken(req.headers.cookie);
-    let role = token.role;
-    let username = token.username;
-
-    // If the user is a student, get the student's attendance records
-    if (role === 'admin') {
-        // If the user is an admin, get all attendance records
-        const attendance = await Attendance.find();
-        res.send(attendance);
-    } else {
-        res.send({ error: 'User not authorized' });
-    }
-};
-
-module.exports = {
-    createAttendance,
-    updateAttendance,
-    getAttendance,
-    getAttendances,
 };

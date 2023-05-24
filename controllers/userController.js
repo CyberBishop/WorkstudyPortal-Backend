@@ -1,64 +1,108 @@
-require('dotenv').config();
 const User = require('../models/userModels');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = process.env;
+const verifyToken = require('../utils/verifyToken');
 
-const deleteUserByUsername = async (username) => {
+const handleServerError = (error) => {
+    console.error(error);
+    return res.json({ error: 'An error occurred' });
+};
+
+exports.deleteUserByUsername = async (req, res) => {
+    const { username } = req.params;
+
     try {
-        const user = await User.findOne({ username });
+        const user = await User.findOneAndDelete({ username });
         if (!user) {
             return { message: 'User not found' };
         }
-        await user.remove();
-        return { message: 'User deleted successfully' };
+        return res.json({ message: 'User deleted successfully' });
     } catch (error) {
-        console.error(error);
-        return { error: 'Server Error' };
+        return handleServerError(error);
     }
 };
 
-const getUser = async (uuid) => {
+exports.verifyUserToken = async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const payload = await verifyToken(token);
+    return res.json(payload);
+};
+
+exports.getUser = async (req, res) => {
+    const { uuid, role } = req.user;
     try {
         const selectFields =
             'fullname username email placement course level totalHours';
-        const users = uuid
-            ? await User.find({ uuid }).select(selectFields)
-            : await User.find({}).select(selectFields);
-        return users;
+        const user = await User.find({ uuid }).select(selectFields);
+        return res.json(user);
     } catch (error) {
-        console.error(error);
-        return { error: 'An error occurred' };
+        return handleServerError(error);
     }
 };
 
-const getUsersByPlacement = async (placement) => {
+exports.getUsers = async (req, res) => {
+    const { uuid, role } = req.user;
+    try {
+        const selectFields =
+            'fullname username email placement course level totalHours';
+        const users = await User.find({}).select(selectFields);
+        return res.json(users);
+    } catch (error) {
+        return handleServerError(error);
+    }
+};
+
+exports.getUsersByPlacement = async (req, res) => {
+    const { placement } = req.params;
     try {
         const selectFields = 'fullname username email placement totalHours';
         const users = await User.find({ placement }).select(selectFields);
-        return users;
+        return res.json(users);
     } catch (error) {
-        console.error(error);
-        return { error: 'An error occurred' };
+        return handleServerError(error);
     }
 };
 
-const createUser = async (userData) => {
+exports.createUser = async (req, res) => {
+    const { username, password, email, fullname, placement, course, level } =
+        req.body;
+
+    if (
+        !username ||
+        !password ||
+        !email ||
+        !fullname ||
+        !placement ||
+        !course ||
+        !level
+    ) {
+        return res.json({ error: 'Please fill in all fields' });
+    }
+
     try {
-        const { email } = userData;
-        const checkEmail = await User.find({ email }).select('email');
-        if (checkEmail.length > 0) {
-            return { error: 'Email / matric_number exists' };
+        const checkEmail = await User.findOne({ email }).select('email');
+        if (checkEmail) {
+            return res.json({ error: 'Email already exists' });
         }
-        const user = await User.create(userData);
-        res.json({ message: 'user created' });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = await User.create({
+            username,
+            password: hashedPassword,
+            email,
+            fullname,
+            placement,
+            course,
+            level,
+        });
+        return res.json({ message: 'User created' });
     } catch (error) {
-        console.error(error);
-        return { error: 'An error occurred' };
+        return handleServerError(error);
     }
 };
 
-const userLogin = async (username, password) => {
+exports.userLogin = async (req, res) => {
+    const { username, password } = req.body;
     try {
         const user = await User.findOne({ username });
         if (user) {
@@ -69,53 +113,57 @@ const userLogin = async (username, password) => {
                     { uuid, username, email, role, firstName, lastName },
                     JWT_SECRET
                 );
-                return { token, role };
+                return res.json({ token, role });
             }
         }
-        return { error: 'Invalid Username/Password' };
+        return res.json({ error: 'Invalid Username/Password' });
     } catch (error) {
-        console.error(error);
-        return { error: 'An error occurred' };
+        return handleServerError(error);
     }
 };
 
-const updateUserPassword = async (uuid, password) => {
+exports.updateUserPassword = async (req, res) => {
+    const { uuid } = req.user;
+    const { password } = req.body;
+
+    if (!password) {
+        return res.json({ error: 'New Password is required' });
+    }
+
     try {
-        const user = await User.findOne({ uuid });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = await User.findOneAndUpdate(
+            { uuid },
+            { password: hashedPassword }
+        );
         if (!user) {
-            return { message: 'User not found' };
+            return res.json({ message: 'User not found' });
         }
-        user.password = password;
-        await user.save();
-        return { message: 'Password updated successfully' };
+        return res.json({ message: 'Password updated successfully' });
     } catch (error) {
-        console.error(error);
-        return { message: 'Password not updated' };
+        return handleServerError(error);
     }
 };
 
-const updateUser = async (username, data) => {
+exports.updateUser = async (req, res) => {
+    const { username } = req.params;
+    const { fullname, email, placement, course, level } = req.body;
+
+    if (!fullname || !email || !placement || !course || !level) {
+        return res.json({ error: 'Missing required fields' });
+    }
+
     try {
-        const user = await User.findOne({ username });
-        // update user details
-        if (data.fullname) user.fullname = data.fullname;
-        if (data.email) user.email = data.email;
-        if (data.placement) user.placement = data.placement;
-        if (data.course) user.course = data.course;
-        if (data.level) user.level = data.level;
-        await user.save();
-        return { message: 'User updated successfully' };
-    } catch (error) {
-        return { error: 'An error occurred' };
-    }
-};
+        const user = await User.findOneAndUpdate(
+            { username },
+            { fullname, email, placement, course, level }
+        );
 
-module.exports = {
-    deleteUserByUsername,
-    getUser,
-    getUsersByPlacement,
-    createUser,
-    userLogin,
-    updateUserPassword,
-    updateUser,
+        if (!user) {
+            return res.json({ message: 'User not found' });
+        }
+        return res.json({ message: 'User updated successfully' });
+    } catch (error) {
+        return handleServerError(error);
+    }
 };

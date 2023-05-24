@@ -1,115 +1,37 @@
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
+
 const uuid = require('uuid');
 const bcrypt = require('bcryptjs');
-const { JWT_SECRET } = process.env;
-const verifyToken = require('../utils/verifyToken');
-const { isLoggedIn } = require('../middlewares/auth'); // import isLoggedIn custom middleware
-const {
-    deleteUser,
-    getUser,
-    getUsersByPlacement,
-    createUser,
-    userLogin,
-    updateUserPassword,
-    updateUser,
-} = require('../controllers/userController');
 
-router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    const login = await userLogin(username, password);
-    res.json({ login });
-});
+const { JWT_SECRET } = process.env;
+const { isLoggedIn, isAdmin } = require('../middlewares/auth'); // import isLoggedIn custom middleware
+const userController = require('../controllers/userController');
+
+// Login route
+router.post('/login', userController.userLogin);
 
 // route to update user data
-router.put('/user/:username', async (req, res) => {
-    const { username } = req.params;
-    const { fullname, email, placement, course, level } = req.body;
-    try {
-        const result = await updateUser(username, {
-            fullname: fullname,
-            email: email,
-            placement: placement,
-            course: course,
-            level: level,
-        });
-        res.json({ message: 'user updated' });
-    } catch (error) {
-        console.log(error);
-        res.json({ error: 'An error occured' });
-    }
-});
+router.put('/user/:username', isAdmin, userController.updateUser);
 
-router.post('/user/register', async (req, res) => {
-    const { username, password, email, fullname, placement, course, level } =
-        req.body;
+// account creation route
+router.post('/user/register', userController.createUser);
 
-    if (
-        !username ||
-        !password ||
-        !email ||
-        !fullname ||
-        !placement ||
-        !course ||
-        !level
-    ) {
-        return res.json({ error: 'Please fill in all fields' });
-    } else {
-        req.body.password = await bcrypt.hash(req.body.password, 10);
-        const uniqueRandomID = uuid.v4();
-        req.body.uuid = uniqueRandomID;
+router.get('/user/verify', userController.verifyUserToken);
 
-        try {
-            let user = await createUser(req.body);
-            res.json({ message: 'user created' });
-        } catch (error) {
-            res.json({ error: 'An error occurred' });
-        }
-    }
-});
+router.get('/user', isLoggedIn, userController.getUser);
 
-router.get('/user/verify', async (req, res) => {
-    const cookie = req.headers.authorization.split(' ')[1];
-    const token = await verifyToken(cookie);
-    res.send(token);
-});
+router.get('/users', isLoggedIn, userController.getUsers);
 
-router.get('/user', isLoggedIn, async (req, res) => {
-    const { uuid, role } = req.user;
-    const users = await getUser(uuid);
-    res.send(users);
-});
+router.get('/users/:placement', isLoggedIn, userController.getUsersByPlacement);
 
-router.get('/users', isLoggedIn, async (req, res) => {
-    const { uuid, role } = req.user;
+router.post(
+    '/user/resetPassword',
+    isLoggedIn,
+    userController.updateUserPassword
+);
 
-    if (role === 'admin') {
-        users = await getUser();
-        res.send(users);
-    } else {
-        res.json({ error: 'user not authorized' });
-    }
-});
-
-router.get('/:placement', isLoggedIn, async (req, res) => {
-    const { placement } = req.params;
-    const users = await getUsersByPlacement(placement);
-    res.send(users);
-});
-
-router.post('/user/reset-password', isLoggedIn, async (req, res) => {
-    const { uuid } = req.user;
-    const { password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const result = await updateUserPassword(uuid, hashedPassword);
-    res.send(result);
-});
-
-router.delete('/:username', async (req, res) => {
-    const { username } = req.params;
-    const message = await deleteUser(username);
-    res.send(message);
-});
+router.delete('/:username', isAdmin, userController.deleteUserByUsername);
 
 module.exports = router;

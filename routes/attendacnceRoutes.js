@@ -1,22 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const {
-    createAttendance,
-    updateAttendance,
-    getAttendance,
-    getAttendances,
-} = require('../controllers/attendanceController');
-const { isLoggedIn } = require('../middlewares/auth'); // import isLoggedIn custom middleware
+
+const attendanceController = require('../controllers/attendanceController');
+
+const { isLoggedIn, isAdmin } = require('../middlewares/auth'); // import isLoggedIn custom middleware
+
 const verifyToken = require('../utils/verifyToken');
 
 router.use(express.json());
 
-router.post('/attendance', createAttendance);
+router.post('/attendance', isLoggedIn, attendanceController.createAttendance);
 
-router.put('/attendance', updateAttendance);
+router.put('/attendance', isLoggedIn, attendanceController.updateAttendance);
 
-router.get('/attendance', isLoggedIn, getAttendance);
-
-router.get('/attendances', isLoggedIn, getAttendances);
+router.get('/attendance', isLoggedIn, attendanceController.getAttendance);
 
 module.exports = router;
