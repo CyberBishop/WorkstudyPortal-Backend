@@ -34,7 +34,7 @@ The Covenant University Workstudy Portal is a web application that facilitates t
 
 To get started with the CU Workstudy Portal, follow these steps:
 
-1. Clone the repository: `git clone https://github.com/your-username/cu-workstudy.git`
+1. Clone the repository: `git clone https://github.com/CyberBishop/cu-workstudy.git`
 2. Install the dependencies: `npm install`
 3. Create a `.env` file based on the provided example (see below) and set the required environment variables.
 4. Start the server: `npm start`
